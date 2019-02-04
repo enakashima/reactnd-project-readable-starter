@@ -1,0 +1,136 @@
+import categories from "../reducers/categories";
+
+const api = "http://localhost:3001"
+
+
+// Generate a unique token for storing your bookshelf data on the backend server.
+let token = localStorage.token
+if (!token)
+  token = localStorage.token = Math.random().toString(36).substr(-8)
+
+const headers = {
+  'Accept': 'application/json',
+  'Authorization': token
+}
+
+export const getCategories = () =>
+    fetch(`${api}/categories`, { headers })
+        .then(res => res.json())
+
+export const getPosts = () =>
+    fetch(`${api}/posts`, { headers })
+        .then(res => res.json())
+
+export const votePost = (postId, option) =>
+    fetch(`${api}/posts/${postId}`, {
+        method: 'POST',
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            option
+        })
+    })
+      .then(res => res.json())
+
+export const savePost = (post) =>
+    fetch(`${api}/posts`, {
+        method: 'POST',
+        headers: {
+        ...headers,
+        'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(post)
+    })
+        .then(res => res.json())
+
+export const editPost = (post) =>
+    fetch(`${api}/posts/${post.id}`, {
+        method: 'PUT',
+        headers: {
+        ...headers,
+        'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(post)
+    })
+        .then(res => res.json())
+
+export const removePost = (postId) =>
+    fetch(`${api}/posts/${postId}`, {
+        method: 'DELETE',
+        headers: {
+        ...headers
+        }
+    })
+        .then(res => res.json())
+
+
+
+export const getComments = (postId) =>
+    fetch(`${api}/posts/${postId}/comments`, { headers })
+        .then(res => res.json())
+        .then(res => (res.reduce((map, obj) => {
+                map[obj.id] = obj
+                return map
+            }, {})))
+
+export const saveComment = (comment) =>
+    fetch(`${api}/comments`, {
+        method: 'POST',
+        headers: {
+            ...headers,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(comment)
+    })
+        .then(res => res.json())
+
+export const voteComment = (commentId, option) =>
+    fetch(`${api}/comments/${commentId}`, {
+        method: 'POST',
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            option
+        })
+    })
+        .then(res => res.json())
+
+export const removeComment = (commentId) =>
+    fetch(`${api}/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: {
+        ...headers
+        }
+    })
+        .then(res => res.json())
+
+export const editComment = (comment) =>
+    fetch(`${api}/comments/${comment.id}`, {
+        method: 'PUT',
+        headers: {
+        ...headers,
+        'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(comment)
+    })
+        .then(res => res.json())
+
+export const getInitialData = () => {
+    return Promise.all([
+        getCategories(),
+        getPosts(),
+    ]).then( ([categories, posts]) => ({
+        categories : categories.categories.reduce((map, obj) => {
+            map[obj.name] = obj;
+            return map;
+        }, {}),
+        posts: posts.reduce((map, key) => {
+            map[key.id] = key
+            return map
+        }, {})
+    }) )
+}
